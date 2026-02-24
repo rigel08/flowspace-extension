@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlowSpace</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="animated-bg"></canvas>
+
+  <div class="container">
+    <div class="header">
+      <h1>🌸 FlowSpace</h1>
+      <div id="clock"></div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab active" data-tab="focus">🎧 Focus</button>
+      <button class="tab" data-tab="schedule">📅 Schedule</button>
+    </div>
+
+    <div id="focus" class="tab-content active">
+      <div class="sound-buttons">
+        <button class="sound" data-sound="rain">🌧 Rain</button>
+        <button class="sound" data-sound="forest">🌲 Forest</button>
+        <button class="sound" data-sound="ocean">🌊 Ocean</button>
+        <button class="sound" data-sound="lofi">🎵 Lofi</button>
+        <button id="stop-sound">⏹ Stop All</button>
+      </div>
+
+      <div class="volume-control">
+        <label>🔊 Volume</label>
+        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.7" />
+      </div>
+
+      <div class="quote-section">
+        <p id="quote">Flow like water, focus like fire.</p>
+        <button id="new-quote">💬 New Quote</button>
+      </div>
+
+      <!-- Open Advanced Scheduler Button -->
+      <button id="open-scheduler" class="open-scheduler-btn">
+        📅 Open Advanced Scheduler
+      </button>
+    </div>
+
+    <div id="schedule" class="tab-content">
+      <div class="schedule-section">
+        <h3>🕒 Quick Reminders</h3>
+        <form id="reminder-form">
+          <input id="reminder-text" type="text" placeholder="e.g. Take a deep breath 🌿" required />
+          <input id="reminder-time" type="time" required />
+          <button type="submit">✨ Add Reminder</button>
+        </form>
+        <ul id="reminder-list"></ul>
+
+        <!-- Open Advanced Scheduler Button -->
+        <button id="open-scheduler-2" class="open-scheduler-btn" style="margin-top: 20px;">
+          🚀 Open Full Scheduler
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

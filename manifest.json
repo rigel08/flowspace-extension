@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "FlowSpace Ultra",
+  "version": "10.0",
+  "description": "Focus and relax with anime lofi and ambient sounds. Includes advanced scheduler, reminders and background playback.",
+  "permissions": ["storage", "alarms", "notifications", "offscreen", "tabs"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["schedule.html", "schedule.css", "schedule.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' https://images.unsplash.com; media-src 'self';"
+  }
+}

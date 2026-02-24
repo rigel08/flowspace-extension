@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowSpace - Advanced Scheduler</title>
+  <link rel="stylesheet" href="schedule.css">
+</head>
+<body>
+  <canvas id="animated-bg"></canvas>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <h1>📅 FlowSpace Scheduler</h1>
+        <p class="subtitle">World-class task & time management</p>
+      </div>
+      <div id="current-time" class="current-time"></div>
+    </header>
+
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" id="completed-count">0</div>
+        <div class="stat-label">Completed Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏰</div>
+        <div class="stat-value" id="pending-count">0</div>
+        <div class="stat-label">Pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-value" id="streak-count">0</div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+    </div>
+
+    <!-- Task Input -->
+    <div class="task-input-section">
+      <h2>➕ Create New Task</h2>
+      <form id="task-form" class="task-form">
+        <input 
+          type="text" 
+          id="task-title" 
+          placeholder="Task title (e.g., Morning workout 💪)"
+          required
+        />
+        
+        <textarea 
+          id="task-description" 
+          placeholder="Add details or notes..."
+          rows="2"
+        ></textarea>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>📅 Date</label>
+            <input type="date" id="task-date" required />
+          </div>
+          
+          <div class="form-group">
+            <label>⏰ Time</label>
+            <input type="time" id="task-time" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>🔔 Reminder</label>
+            <select id="task-reminder">
+              <option value="0">At time</option>
+              <option value="5">5 min before</option>
+              <option value="15">15 min before</option>
+              <option value="30">30 min before</option>
+              <option value="60">1 hour before</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>🏷️ Priority</label>
+            <select id="task-priority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>🎨 Category</label>
+          <select id="task-category">
+            <option value="work">💼 Work</option>
+            <option value="personal">🏠 Personal</option>
+            <option value="health">💪 Health</option>
+            <option value="study">📚 Study</option>
+            <option value="other">📌 Other</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-primary">✨ Create Task</button>
+      </form>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">All Tasks</button>
+      <button class="filter-tab" data-filter="today">Today</button>
+      <button class="filter-tab" data-filter="upcoming">Upcoming</button>
+      <button class="filter-tab" data-filter="completed">Completed</button>
+    </div>
+
+    <!-- Tasks List -->
+    <div class="tasks-container">
+      <div id="tasks-list" class="tasks-list"></div>
+      <div id="empty-state" class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>No tasks yet</h3>
+        <p>Create your first task to get started!</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="schedule.js"></script>
+</body>
+</html>

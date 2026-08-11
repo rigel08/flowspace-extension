@@ -26,12 +26,27 @@
         <button class="sound" data-sound="forest">🌲 Forest</button>
         <button class="sound" data-sound="ocean">🌊 Ocean</button>
         <button class="sound" data-sound="lofi">🎵 Lofi</button>
-        <button id="stop-sound">⏹ Stop All</button>
+        <button id="stop-sound" type="button" aria-label="Stop sound">
+          <span class="stop-icon" aria-hidden="true"></span>
+          <span class="stop-label">Stop Sound</span>
+        </button>
       </div>
 
       <div class="volume-control">
         <label>🔊 Volume</label>
         <input id="volume" type="range" min="0" max="1" step="0.01" value="0.7" />
+      </div>
+
+      <div class="focus-timer-section">
+        <h3 class="focus-timer-title">🎯 Focus Session</h3>
+        <div id="timer-display" class="timer-display" aria-live="polite">25:00</div>
+        <div id="timer-status" class="timer-status">Ready to focus</div>
+        <div class="timer-controls">
+          <button id="timer-start" class="timer-btn primary" type="button">▶ Start</button>
+          <button id="timer-pause" class="timer-btn" type="button" hidden>⏸ Pause</button>
+          <button id="timer-resume" class="timer-btn primary" type="button" hidden>▶ Resume</button>
+          <button id="timer-end" class="timer-btn danger" type="button" hidden>⏹ End</button>
+        </div>
       </div>
 
       <div class="quote-section">

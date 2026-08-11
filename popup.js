@@ -111,8 +111,8 @@ document.querySelectorAll('.sound').forEach(btn => {
       sound: sound,
       volume: volume
     });
-    
-    console.log(`Playing ${sound} at volume ${volume}`);
+
+    setActiveSound(sound);
   });
 });
 
@@ -121,8 +121,25 @@ document.getElementById('stop-sound').addEventListener('click', () => {
   chrome.runtime.sendMessage({ 
     action: 'stop' 
   });
-  
-  console.log('Stopped all sounds');
+
+  setActiveSound(null);
+});
+
+// Highlights whichever sound card is currently playing (purple glow)
+// and clears the rest.
+function setActiveSound(soundName) {
+  document.querySelectorAll('.sound').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-sound') === soundName);
+  });
+}
+
+// Sync the active-sound highlight with whatever is actually playing —
+// covers reopening the popup while ambient audio keeps running in the
+// background offscreen document.
+chrome.runtime.sendMessage({ action: 'sound:getState' }, (response) => {
+  if (response && response.sound) {
+    setActiveSound(response.sound);
+  }
 });
 
 // Volume slider handler
@@ -134,8 +151,6 @@ document.getElementById('volume').addEventListener('input', (e) => {
     action: 'volume',
     volume: volume
   });
-  
-  console.log(`Volume set to ${volume}`);
 });
 
 // ===== OPEN ADVANCED SCHEDULER =====
@@ -274,3 +289,101 @@ function scheduleReminder(reminder) {
     });
   }, delay);
 }
+// ===== FOCUS TIMER =====
+// Timestamp-based countdown: the popup never owns the authoritative
+// timer state. It asks background.js for { status, targetEndTime,
+// remainingMs, duration } and, while running, redraws every second by
+// recomputing (targetEndTime - Date.now()) — never by decrementing a
+// local counter. This means closing/reopening the popup can never
+// desync the displayed time.
+const FOCUS_DURATION_MS = 25 * 60 * 1000;
+
+const timerDisplay = document.getElementById('timer-display');
+const timerStatusEl = document.getElementById('timer-status');
+const timerStartBtn = document.getElementById('timer-start');
+const timerPauseBtn = document.getElementById('timer-pause');
+const timerResumeBtn = document.getElementById('timer-resume');
+const timerEndBtn = document.getElementById('timer-end');
+
+let timerTickInterval = null;
+
+function formatTimerMs(ms) {
+  const totalSeconds = Math.max(0, Math.round(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function setTimerButtons({ start, pause, resume, end }) {
+  timerStartBtn.hidden = !start;
+  timerPauseBtn.hidden = !pause;
+  timerResumeBtn.hidden = !resume;
+  timerEndBtn.hidden = !end;
+}
+
+function renderTimerState(state) {
+  if (!state) return;
+
+  clearInterval(timerTickInterval);
+  timerTickInterval = null;
+
+  if (state.status === 'running') {
+    setTimerButtons({ start: false, pause: true, resume: false, end: true });
+    timerStatusEl.textContent = 'Focusing…';
+
+    const tick = () => {
+      const remaining = state.targetEndTime - Date.now();
+      if (remaining <= 0) {
+        clearInterval(timerTickInterval);
+        timerTickInterval = null;
+        timerDisplay.textContent = '0:00';
+        // Session has ended — ask background for the authoritative
+        // post-completion state (it owns the transition + notification).
+        requestTimerState();
+        return;
+      }
+      timerDisplay.textContent = formatTimerMs(remaining);
+    };
+
+    tick();
+    timerTickInterval = setInterval(tick, 1000);
+  } else if (state.status === 'paused') {
+    setTimerButtons({ start: false, pause: false, resume: true, end: true });
+    timerStatusEl.textContent = 'Paused';
+    timerDisplay.textContent = formatTimerMs(state.remainingMs ?? state.duration ?? FOCUS_DURATION_MS);
+  } else if (state.status === 'completed') {
+    setTimerButtons({ start: true, pause: false, resume: false, end: false });
+    timerStatusEl.textContent = 'Session complete 🎉';
+    timerDisplay.textContent = '0:00';
+  } else {
+    setTimerButtons({ start: true, pause: false, resume: false, end: false });
+    timerStatusEl.textContent = 'Ready to focus';
+    timerDisplay.textContent = formatTimerMs(state.duration ?? FOCUS_DURATION_MS);
+  }
+}
+
+function requestTimerState() {
+  chrome.runtime.sendMessage({ action: 'timer:getState' }, renderTimerState);
+}
+
+timerStartBtn.addEventListener('click', () => {
+  chrome.runtime.sendMessage({ action: 'timer:start', duration: FOCUS_DURATION_MS }, renderTimerState);
+});
+
+timerPauseBtn.addEventListener('click', () => {
+  chrome.runtime.sendMessage({ action: 'timer:pause' }, renderTimerState);
+});
+
+timerResumeBtn.addEventListener('click', () => {
+  chrome.runtime.sendMessage({ action: 'timer:resume' }, renderTimerState);
+});
+
+timerEndBtn.addEventListener('click', () => {
+  chrome.runtime.sendMessage({ action: 'timer:reset' }, renderTimerState);
+});
+
+// Pick up the current state as soon as the popup opens (covers the
+// "closed then reopened" case) and again whenever the user switches
+// back to the Focus tab.
+requestTimerState();
+document.querySelector('.tab[data-tab="focus"]')?.addEventListener('click', requestTimerState);

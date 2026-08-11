@@ -115,22 +115,39 @@ document.getElementById('task-date').value = getTodayDate();
 document.getElementById('task-form').addEventListener('submit', (e) => {
   e.preventDefault();
 
+  const date = document.getElementById('task-date').value;
+  const time = document.getElementById('task-time').value;
+  const reminderMinutes = parseInt(document.getElementById('task-reminder').value, 10) || 0;
+
+  // Compute absolute fire times once, at creation. These (not the raw
+  // date/time strings) are the source of truth background.js uses to
+  // schedule and reconcile chrome.alarms.
+  const dueAt = new Date(`${date}T${time}`).getTime();
+  const reminderAt = reminderMinutes > 0 ? dueAt - reminderMinutes * 60000 : null;
+
   const task = {
     id: Date.now(),
     title: document.getElementById('task-title').value.trim(),
     description: document.getElementById('task-description').value.trim(),
-    date: document.getElementById('task-date').value,
-    time: document.getElementById('task-time').value,
-    reminder: parseInt(document.getElementById('task-reminder').value),
+    date,
+    time,
+    reminder: reminderMinutes,
     priority: document.getElementById('task-priority').value,
     category: document.getElementById('task-category').value,
     completed: false,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    dueAt: Number.isFinite(dueAt) ? dueAt : null,
+    reminderAt: Number.isFinite(reminderAt) ? reminderAt : null,
+    reminderNotifiedAt: null,
+    dueNotifiedAt: null
   };
 
   tasks.push(task);
   saveTasks();
-  scheduleNotification(task);
+  // Hand off to background.js to create the chrome.alarms entries —
+  // this is what lets the reminder/due notifications survive the
+  // scheduler tab (or the popup) being closed.
+  chrome.runtime.sendMessage({ action: 'task:schedule', task });
   renderTasks();
   updateStats();
 
@@ -145,53 +162,6 @@ document.getElementById('task-form').addEventListener('submit', (e) => {
 // Save tasks to storage
 function saveTasks() {
   chrome.storage.local.set({ tasks: tasks });
-}
-
-// Schedule notification
-function scheduleNotification(task) {
-  const taskDateTime = new Date(`${task.date}T${task.time}`);
-  const now = new Date();
-  
-  // Calculate when to show notification (considering reminder time)
-  const notificationTime = new Date(taskDateTime.getTime() - task.reminder * 60000);
-  const delay = notificationTime - now;
-
-  if (delay > 0) {
-    setTimeout(() => {
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: 'icons/icon128.png',
-        title: `⏰ ${task.title}`,
-        message: task.reminder === 0 
-          ? `Time for your task!`
-          : `Starting in ${task.reminder} minutes`,
-        priority: 2,
-        requireInteraction: true
-      });
-
-      // Play notification sound
-      chrome.runtime.sendMessage({
-        action: 'play',
-        sound: 'notification',
-        volume: 0.7
-      });
-    }, delay);
-  }
-
-  // Also schedule alarm for exact time
-  if (taskDateTime > now) {
-    const alarmDelay = taskDateTime - now;
-    setTimeout(() => {
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: 'icons/icon128.png',
-        title: `🔔 ${task.title}`,
-        message: 'Task time is now!',
-        priority: 2,
-        requireInteraction: true
-      });
-    }, alarmDelay);
-  }
 }
 
 // Filter tabs
@@ -347,6 +317,12 @@ function toggleComplete(taskId) {
     if (task.completed) {
       showNotification('🎉 Task completed! Great job!');
       updateStreak();
+      // A completed task should never fire its reminder/due notification.
+      chrome.runtime.sendMessage({ action: 'task:cancel', id: task.id });
+    } else {
+      // Un-completed: re-eligible for its reminder/due notification if
+      // that time is still ahead of now.
+      chrome.runtime.sendMessage({ action: 'task:schedule', task });
     }
     
     saveTasks();
@@ -360,6 +336,7 @@ function deleteTask(taskId) {
   if (confirm('Are you sure you want to delete this task?')) {
     tasks = tasks.filter(t => t.id !== taskId);
     saveTasks();
+    chrome.runtime.sendMessage({ action: 'task:cancel', id: taskId });
     renderTasks();
     updateStats();
     showNotification('🗑️ Task deleted');

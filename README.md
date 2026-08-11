@@ -9,7 +9,11 @@ It provides a clean, lightweight interface directly inside your browser so you c
 ## ✨ Features
 
 - Add and delete tasks
-- Persistent storage using LocalStorage
+- Advanced scheduler with due-date/time reminders
+- Configurable focus session timer (15/25/45/60 min or custom)
+- Rain / Forest / Ocean / Lofi ambient sounds, plus your own imported audio
+- Reliable notifications via chrome.alarms (survive popup/tab closing)
+- Persistent storage using chrome.storage.local and IndexedDB
 - Clean and minimal UI
 - Fast and lightweight
 - Built as a browser extension (Manifest V3)
@@ -71,7 +75,7 @@ flowspace-extension/
 
 - Task categories
 - Dark mode
-- Pomodoro timer integration
+- Pomodoro auto break/focus cycle (the alarm/notification plumbing is already reusable for this)
 - Cloud sync
 - AI-based productivity insights
 

@@ -1,92 +1,127 @@
-# Flowspace 🧘‍♂️
+# FlowSpace 🧘‍♂️
 
-Flowspace is a minimal browser extension designed to help you focus and manage tasks without distractions.
+A focused Chrome extension for ambient soundscapes, configurable focus sessions, reminders, scheduling, and local music playback.
 
-It provides a clean, lightweight interface directly inside your browser so you can quickly add, track, and complete tasks while staying in your flow state.
-
----
+FlowSpace brings the tools you need to stay in a focused environment into one lightweight browser extension.
 
 ## ✨ Features
 
-- Add and delete tasks
-- Advanced scheduler with due-date/time reminders
-- Configurable focus session timer (15/25/45/60 min or custom)
-- Rain / Forest / Ocean / Lofi ambient sounds, plus your own imported audio
-- Reliable notifications via chrome.alarms (survive popup/tab closing)
-- Persistent storage using chrome.storage.local and IndexedDB
-- Clean and minimal UI
-- Fast and lightweight
-- Built as a browser extension (Manifest V3)
+### 🎯 Focus Sessions
 
----
+- Configurable focus durations
+- Preset sessions: 15, 25, 45, and 60 minutes
+- Custom session durations
+- Start, pause, resume, and end controls
+- Persistent timer state
+- Timer continues accurately when the popup is closed
+- Focus completion notification
 
-## 🛠 Tech Stack
+### 🌧️ Ambient Soundscapes
+
+Choose from built-in environments:
+
+- 🌧️ Rain
+- 🌲 Forest
+- 🌊 Ocean
+- 🎧 Lofi
+
+Sound playback includes volume control and persistent background audio through Chrome's offscreen document architecture.
+
+### ✨ Flow Mode
+
+Flow Mode connects the focus session with the visual environment.
+
+Different soundscapes create different visual atmospheres through the particle system, with changes to movement, intensity, color, and other visual parameters.
+
+The focus timer can also influence the visual intensity of the environment.
+
+### 🎵 My Music
+
+Import your own audio directly into FlowSpace.
+
+- Import local audio files
+- Store tracks locally using IndexedDB
+- Play imported tracks through the same audio pipeline
+- Manage and remove imported tracks
+- No music upload server required
+
+### 📅 Advanced Scheduler
+
+Create scheduled tasks and reminders with:
+
+- Due dates
+- Specific times
+- Persistent scheduled events
+- Chrome alarm-based notifications
+
+Scheduled events continue to work without requiring the popup to remain open.
+
+### 🔔 Notifications
+
+FlowSpace uses Chrome's alarm and notification APIs for persistent background events.
+
+Notifications can be triggered by:
+
+- Focus session completion
+- Scheduled reminders
+- Scheduled tasks
+
+## 🧠 Built For Focus
+
+FlowSpace is designed around a simple idea:
+
+**Create your environment, start your session, and stay there.**
+
+Instead of switching between a timer, music player, reminder app, and multiple browser tabs, FlowSpace keeps these pieces together in one focused workspace.
+
+## 🛠️ Technical Architecture
+
+FlowSpace is built with:
 
 - JavaScript
 - HTML
 - CSS
-- React (if used)
-- Vite (if used)
 - Chrome Extension Manifest V3
+- Chrome Storage API
+- Chrome Alarms API
+- Chrome Notifications API
+- Chrome Offscreen Documents
+- IndexedDB
 
----
+### Popup
 
-## 📦 Installation (Local Development)
+`popup.html`, `popup.js`, and `style.css` provide the main FlowSpace interface.
 
-1. Clone the repository:
+The popup controls:
 
-   git clone https://github.com/YOUR_USERNAME/flowspace-extension.git
+- Focus sessions
+- Ambient sounds
+- Volume
+- Imported music
+- Flow Mode
+- Tasks and reminders
 
-2. Open Chrome and go to:
+### Background Service Worker
 
-   chrome://extensions
+`background.js` handles functionality that needs to persist outside the popup, including:
 
-3. Enable Developer Mode (top right).
+- Focus timer state
+- Chrome alarms
+- Notifications
+- Audio communication
+- Background scheduling
 
-4. Click "Load unpacked".
+### Offscreen Audio
 
-5. Select the project folder.
+Chrome Manifest V3 service workers cannot directly maintain normal audio playback.
 
----
+FlowSpace uses an offscreen document to handle audio playback so ambient sounds and imported music can continue while the popup is closed.
 
-## 🚀 Usage
+### Persistent Timer
 
-- Click the Flowspace extension icon.
-- Add tasks.
-- Stay focused.
-- Conquer your day.
+The focus timer uses timestamps rather than relying on a continuously decrementing counter.
 
----
+The remaining time is calculated from the target completion time:
 
-## 📁 Project Structure
-
-flowspace-extension/
-│
-├── manifest.json
-├── index.html
-├── style.css
-├── script.js
-├── icons/
-└── README.md
-
----
-
-## 🌱 Future Improvements
-
-- Task categories
-- Dark mode
-- Pomodoro auto break/focus cycle (the alarm/notification plumbing is already reusable for this)
-- Cloud sync
-- AI-based productivity insights
-
----
-
-## 👤 Author
-
-Srihith Rao
-
----
-
-## 📄 License
-
-This project is open-source and available under the MIT License.
+```text
+remaining = targetEndTime - currentTime
